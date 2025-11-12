@@ -1,11 +1,13 @@
 # 🍔 Sistema de Gerenciamento de Pedidos
 
 ## 👥 Equipe
-- Membro 1: __________________
-- Membro 2: __________________
-- Membro 3: __________________
-- Membro 4: __________________
-- Membro 5: __________________
+
+- Membro 1: Katarine Meira 
+- Membro 2: Nycolle Khetlem
+- Membro 3: Pedro Ferreira
+- Membro 4: Samily Sena
+- Membro 5: Tarscilla Almeida
+- Membro 5: Luana Magalhães
 
 ---
 
