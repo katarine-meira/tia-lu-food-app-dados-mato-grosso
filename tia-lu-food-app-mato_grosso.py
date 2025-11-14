@@ -1,4 +1,3 @@
-itemCadastrado = []
 contador_produto = 1
 contador_pedido = 1
 
@@ -82,12 +81,19 @@ def menuPedidos():
 # --------------------------------------------- FUNÇÃO DE CRIAR CLIENTE -------------------------------->>>
 
 clientes = []
+def cadastroCliente():
+    cliente = {}
+    nome = input("Digite seu nome de usuário: ")
+    cliente["nome"] = nome
+    clientes.append(cliente)
+    print(f"Bem-vindo {nome}!")
+
 def criarCliente():
     if clientes:
         while True:
             print("\nEscolha o usuário\n")
             for i, cliente in enumerate(clientes):
-                print(f"[{i}] - {cliente}")
+                print(f"[{i}] - {cliente['nome']}")
             print(f"[{len(clientes)}] - Criar novo cliente")  # opção extra, sempre a ultima
             
             try:
@@ -95,14 +101,12 @@ def criarCliente():
                 
                 # Se escolheu cliente existente
                 if 0 <= opcao < len(clientes):
-                    print(f"Bem-vindo {clientes[opcao]}!")
+                    print(f"Bem-vindo {clientes[opcao]['nome']}!")
                     break
             
                 # Se escolheu criar novo
                 elif opcao == len(clientes):
-                    nome = input("Digite seu nome de usuário: ")
-                    clientes.append(nome)
-                    print(f"Bem-vindo {nome}!")
+                    cadastroCliente()
                     break
         
                 else:
@@ -119,9 +123,7 @@ def criarCliente():
             match menu:
                 case '1':
                     try:
-                        nome = input("\nDigite seu nome de usuário: ")
-                        clientes.append(nome)
-                        print(f"Bem vindo {clientes[0]}!")
+                        cadastroCliente()
                         return
                     except ValueError:
                         print("Digite um nome válido!")
@@ -158,8 +160,10 @@ def novoItem():
             case _:
                 print("Opção inválida. Tente novamente.")
 
+itemCadastrado = []
 def cadastrarItem():
     global contador_produto
+    item = {}
     nome = (input("Digite o nome do produto: "))
     descricao = (input("Digite a descrição do produto: "))
     while True:
@@ -179,7 +183,14 @@ def cadastrarItem():
     codigo = f"PRO{contador_produto:04d}"
     contador_produto += 1
     
-    item = [nome, descricao, codigo, preco, estoque]  # <-- lista
+    # ---- mapa --->
+    item = {
+        "nome": nome,
+        "descricao": descricao,
+        "codigo": codigo,
+        "preco": preco,
+        "estoque": estoque
+    }
     itemCadastrado.append(item)
     
     print("\nProduto cadastrado com sucesso!\n")
@@ -191,30 +202,34 @@ def atualizarItens():
         return
     print("\n=== ITENS CADASTRADOS ===")
     for i, item in enumerate(itemCadastrado):
-        print(f"[{i}] {item[0]} (R${item[3]} - estoque: {item[4]})")
+        print(f"[{i}] {item['nome']} (R${item['preco']} - estoque: {item['estoque']})")
 
     while True:
-        try: 
-            indice = int(input("\nDigite o número do item que será atualizado: "))
-            if indice < 0 or indice >= len(itemCadastrado):
-                print("\nItem inválido.")
-                continue
-            break
+        try:
+            indice = int(input("\nDigite o número do item a atualizar: "))
+            if 0 <= indice < len(itemCadastrado):
+                break
+            else:
+                print("Item inválido!")
         except ValueError:
-            print("\nDigite um item já cadastrado")
-            continue
+            print("Digite um número válido!")
     
-    nome, descricao, codigo, preco, estoque = itemCadastrado[indice]
-
+    item = itemCadastrado[indice]
+    
     print("\nDeixe em branco apenas o campo que não será alterado.")
 
-    nome_atual = input(f"Nome atual [{nome}]: ") or nome
-    descricao_atual = input(f"Descrição atual [{descricao}]: ") or descricao
-    preco_atual = input(f"Preço atual [{preco}]:") or preco
-    estoque_atual = input(f"Estoque atual [{estoque}]:") or estoque
+    nome_atual = input(f"Nome atual [{item['nome']}]: ") or item['nome']
+    descricao_atual = input(f"Descrição atual [{item['descricao']}]: ") or item['descricao']
+    preco_atual = input(f"Preço atual [{item['preco']}]:") or item['preco']
+    estoque_atual = input(f"Estoque atual [{item['estoque']}]:") or item['estoque']
 
     # itens atualizados
-    itemCadastrado[indice]= [nome_atual, descricao_atual, codigo, preco_atual, estoque_atual]
+    item.update({
+        "nome": nome_atual,
+        "descricao": descricao_atual,
+        "preco": float(preco_atual),
+        "estoque": int(estoque_atual)
+    })
 
     print("\nItens atualizados!")
 
@@ -223,7 +238,7 @@ def consultarItens():
     if itemCadastrado:
         print("\n===== Itens Disponíveis =====")
         for i, item in enumerate(itemCadastrado):
-            print(f"[{i}] {item[0]} (R${item[3]} - Descrição: {item[1]})")
+            print(f"[{i}] {item['nome']} (R${item['preco']} - Descrição: {item['descricao']})")
     else:
         print("\nNenhum item cadastrado.")
 
@@ -233,11 +248,11 @@ def detalhesItens():
     if itemCadastrado:
         print("\n===== Detalhes do Item =====\n")
         for item in itemCadastrado:
-            print(f"Nome: {item[0]}")
-            print(f"Descrição: {item[1]}")
-            print(f"Código: {item[2]}")
-            print(f"Preço: R$ {item[3]:.2f}")
-            print(f"Estoque: {item[4]}\n")           
+            print(f"Nome: {item['nome']}")
+            print(f"Descrição: {item['descricao']}")
+            print(f"Código: {item['codigo']}")
+            print(f"Preço: R$ {item['preco']:.2f}")
+            print(f"Estoque: {item['estoque']}\n")           
     else:
         print("\nNenhum item cadastrado.")
             
@@ -246,71 +261,72 @@ def detalhesItens():
 pedidosPendentes = []
 def criarPedido():
     global contador_pedido
-    if itemCadastrado:
-        consultarItens()
-        pedido_usuario = {
-            "id_pedido": f"PED{contador_pedido:04d}",
-            "produtos": [],   # lista de produtos desse pedido
-            "status": "Aguardando Aprovação" # status inicial
-        }
-        contador_pedido += 1
-        qtd_produto = True
-        while qtd_produto == True:
-            try:
-                indice = int(input("\nDigite o número do produto que deseja: "))
-            except ValueError:
-                print("Digite um número válido.")
-                continue
-            
-            if 0 <= indice < len(itemCadastrado):
-                # verifica o estoque
-                if itemCadastrado[indice][4] > 0:
-                    # decrementa do estoque
-                    itemCadastrado[indice][4] -= 1
-                    pedido = {
-                        "nome": itemCadastrado[indice][0],
-                        "codigo": itemCadastrado[indice][2],
-                        "preco": itemCadastrado[indice][3],
-                    }
-                    pedido_usuario["produtos"].append(pedido)
+    if not itemCadastrado:
+        print("\nNenhum produto no sistema.")
+        return
+    
+    consultarItens()
+    print(f"[{len(itemCadastrado)}] Sair")
+    
+    
+    pedido_usuario = {
+        "id_pedido": f"PED{contador_pedido:04d}",
+        "produtos": [],   # lista de produtos desse pedido
+        "status": "Aguardando Aprovação" # status inicial
+    }
+    contador_pedido += 1
+    while True:
+        try:
+            indice = int(input("\nDigite o número do produto que deseja: "))
+        except ValueError:
+            print("Digite um número válido.")
+            continue
+        if indice == len(itemCadastrado):
+            print("\nPedido cancelado.")
+            return
+        if 0 <= indice < len(itemCadastrado):
+            # verifica o estoque
+            if itemCadastrado[indice]['estoque'] > 0:
+                # decrementa do estoque
+                itemCadastrado[indice]['estoque'] -= 1
+                pedido = {
+                    "nome": itemCadastrado[indice]['nome'],
+                    "codigo": itemCadastrado[indice]['codigo'],
+                    "preco": itemCadastrado[indice]['preco'],
+                }
+                pedido_usuario["produtos"].append(pedido)
 
-                    print("\nSua lista atual de pedidos:")
-                    for p in pedido_usuario["produtos"]:
-                        print(f"- {p['nome']}")
-                        
-                    controle = True
-                    while controle == True:
-                        match pergunta("Adicionar mais produtos"):
-                            case '1':
-                                consultarItens()
-                                controle = False
-                            case '0':
-                                qtd_produto = False
-                                controle = False 
-                            case _:
-                                print("\nOpção inválida")
-                else:
-                    print(f"\n{itemCadastrado[indice][0]} está sem estoque.")
+                print("\nSua lista atual de pedidos:")
+                for p in pedido_usuario["produtos"]:
+                    print(f"- {p['nome']}")
+                    
+                while True:
+                    match pergunta("Adicionar mais produtos"):
+                        case '1':
+                            consultarItens()
+                            break
+                        case '0':
+                            if pedido_usuario["produtos"]:
+                                pedidosPendentes.append(pedido_usuario)
+                                print("\nPedido enviado para aprovação!")
+                            else:
+                                print("\nNenhum produto adicionado, pedido cancelado.")
+                            return 
+                        case _:
+                            print("\nOpção inválida")
             else:
-                print("\nÍndice inválido.")
-                controle2=True
-                while controle2 == True:
+                print(f"\n{itemCadastrado[indice]['nome']} está sem estoque.")
+                while True:
                     match sair():
                         case '1':
                             break
                         case '0':
-                            controle2=False
-                            qtd_produto = False
+                            print("\nPedido cancelado.")
+                            return
                         case _:
-                            print("\nOpção inválida")
-        
-        if pedido_usuario["produtos"]:
-            pedidosPendentes.append(pedido_usuario)
-            print(f"\nPedido enviado para aprovação!")
+                            print("Opção inválida.")
         else:
-            print("\nNenhum produto adicionado, pedido não criado.")
-    else:
-        print("\nNenhum produto no sistema.")
+            print("\nÍndice inválido.")
 
 filaPreparo = []
 filaRejeitados = []
@@ -367,10 +383,10 @@ def ProcessarPedidos():
 def atualizarStatusPedido():
     fluxoStatus = [
         'Em preparo',
-        'Pedido pronto!',
-        'Aguardando o entregador!',
-        'Seu pedido saiu para entrega!',
-        'Pedido entregue!'
+        'Pedido pronto',
+        'Aguardando o entregador',
+        'Seu pedido saiu para entrega',
+        'Pedido entregue'
     ]
     print("\nPEDIDOS EM PROCESSO: \n")
     for pedido in (filaPreparo):
@@ -402,8 +418,8 @@ def atualizarStatusPedido():
                 
             print(f"Status do pedido {pedido['id_pedido']} atualizado para: {pedido['status']}")
             return
-        else:
-            print("\nPedido não encontrado!")
+        
+    print("\nPedido não encontrado!")
 
 filaCancelados =[]
 def cancelarPedido():
@@ -462,19 +478,19 @@ def exibirPedidos():
 
 def filtroStatus():
     print("\n========= FILTRAR PEDIDO POR STATUS ==========")
-    status = input("Digite o status que deseja filtrar (Ex: 'Pedido pronto', 'Em preparo', 'saiu para entrega'): ")
+    status = input("Digite o status que deseja filtrar: ").strip().lower()
 
     fila_pedido = pedidosPendentes + filaCancelados + filaPreparo + filaRejeitados
-    filtrado = [p for p in fila_pedido if p['status'].lower()]
+    filtrado = [p for p in fila_pedido if p['status'].lower() == status]
 
     if not filtrado:
-        print(f"\nNenhum pedido encontrado.")
+        print("\nNenhum pedido encontrado.")
     else: 
-        print(f"\nPedidos com status {status}:")
+        print(f"\nPedidos com status '{status}':")
         for pedido in filtrado:
             nome_produto = ", ".join([p['nome'] for p in pedido['produtos']])
             total = pedido.get("valor_final_pago", "N/A")
-            print(f"ID: {pedido['id_pedido']} | Produtos: {nome_produto} | valor Total: {total}")
+            print(f"ID: {pedido['id_pedido']} | Produtos: {nome_produto} | Valor total: {total}")
 
 
 def relatorioVendas():
@@ -513,6 +529,8 @@ while True:
                     case '1':
                         criarCliente()
                         criarPedido()
+                        print(clientes)
+                        print(pedidosPendentes)
                     case '2':
                         criarCliente()
                         ProcessarPedidos()
@@ -524,7 +542,7 @@ while True:
                         cancelarPedido()
                     case '5':
                         criarCliente()
-                        print(filaPreparo)
+
                         while True:
                             match menuConsultas():
                                 case '1':
