@@ -1,6 +1,33 @@
 contador_produto = 1
 contador_pedido = 1
 
+# função generica para implementar o bucket sort
+
+def bucket_sort(arr, key=lambda x: x):
+    if len(arr) <= 1:
+        return arr
+
+    min_val = min(arr, key=key)
+    max_val = max(arr, key=key)
+
+    bucket_count = len(arr)
+
+    buckets = [[] for _ in range(bucket_count)]
+
+    for item in arr:
+        index = int((key(item) - key(min_val)) / (key(max_val) - key(min_val)) * (bucket_count - 1))
+        buckets[index].append(item)
+
+    for i in range(bucket_count):
+        buckets[i] = sorted(buckets[i], key=key)
+
+    sorted_arr = []
+    for bucket in buckets:
+        sorted_arr.extend(bucket)
+
+    return sorted_arr
+
+
 # ---------------------------------------------FUNÇÕES REUTILIZAVEIS ------------------------------------>>>
 
 def sair():
@@ -237,7 +264,10 @@ def atualizarItens():
 def consultarItens():
     if itemCadastrado:
         print("\n===== Itens Disponíveis =====")
-        for i, item in enumerate(itemCadastrado):
+
+        itens_ordenados = bucket_sort(itemCadastrado, key=lambda x: int(x['codigo'][3:]))
+
+        for i, item in enumerate(itens_ordenados):
             print(f"[{i}] {item['nome']} (R${item['preco']} - Descrição: {item['descricao']})")
     else:
         print("\nNenhum item cadastrado.")
@@ -466,7 +496,10 @@ def exibirPedidos():
     def mostrar_lista (nome, lista):
         if lista:
             print (f"\n ==== {nome} ====") 
-            for pedido in lista:
+
+             pedidos_ordenados = bucket_sort(lista, key=lambda x: int(x['id_pedido'][3:])) 
+
+            for pedido in pedidos_ordenados:
                 nome_produto = ", ".join([p['nome'] for p in pedido ['produtos']])
                 total = pedido.get("valor_final_pago", "N/A")
                 print (f"ID: {pedido['id_pedido']}  Produto: {nome_produto} | Status: {pedido['status']} | valor: {total}")
