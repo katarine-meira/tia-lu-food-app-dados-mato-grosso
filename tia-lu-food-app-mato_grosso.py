@@ -497,7 +497,7 @@ def exibirPedidos():
         if lista:
             print (f"\n ==== {nome} ====") 
 
-             pedidos_ordenados = bucket_sort(lista, key=lambda x: int(x['id_pedido'][3:])) 
+            pedidos_ordenados = bucket_sort(lista, key=lambda x: int(x['id_pedido'][3:])) 
 
             for pedido in pedidos_ordenados:
                 nome_produto = ", ".join([p['nome'] for p in pedido ['produtos']])

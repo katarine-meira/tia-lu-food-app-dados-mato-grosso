@@ -7,7 +7,7 @@
 - Membro 3: Pedro Ferreira
 - Membro 4: Samily Sena
 - Membro 5: Tarscilla Almeida
-- Membro 5: Luana Magalhães
+- Membro 6: Luana Magalhães
 
 ---
 
