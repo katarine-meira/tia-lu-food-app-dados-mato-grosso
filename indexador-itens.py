@@ -77,5 +77,14 @@ class ArvoreAVL:
             return self.rotacao_esquerda(raiz)
         
         return raiz
+        
+    def buscar(self, raiz, cod_item):
+        if raiz is None:
+            return None
+
+        if cod_item == raiz.cod_item:
+            return self.buscar(raiz.esquerda, cod_item)
+        return self.buscar(raiz.direita, cod_item)
     
+
     
