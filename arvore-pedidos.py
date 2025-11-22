@@ -1,3 +1,8 @@
+from json_funcoe import carregar_json, salvar_json
+
+CAMINHO_JSON_PEDIDOS = "dados_pedidos.json"
+
+
 class NoAVL:
     def __init__(self, id_pedido, dados_pedido):
         self.id = id_pedido
@@ -10,29 +15,30 @@ class NoAVL:
 class ArvorePedido:
     def __init__(self):
         self.raiz = None
+        self.carregar_pedidos()
 
     def altura(self, no):
         return 0 if no is None else no.altura
 
-    def fatorBalanceamento(self, no):
+    def balanceamento(self, no):
         if no is None:
             return 0
         return self.altura(no.esquerda) - self.altura(no.direita)
 
-    def rotaDireita(self, y):
+    def rotacao_direita(self, y):
         x = y.esquerda
-        T2 = x.direita
+        t2 = x.direita
         x.direita = y
-        y.esquerda = T2
+        y.esquerda = t2
         y.altura = 1 + max(self.altura(y.esquerda), self.altura(y.direita))
         x.altura = 1 + max(self.altura(x.esquerda), self.altura(x.direita))
         return x
 
-    def rotaEsquerda(self, x):
+    def rotacao_esquerda(self, x):
         y = x.direita
-        T2 = y.esquerda
+        t2 = y.esquerda
         y.esquerda = x
-        x.direita = T2
+        x.direita = t2
         x.altura = 1 + max(self.altura(x.esquerda), self.altura(x.direita))
         y.altura = 1 + max(self.altura(y.esquerda), self.altura(y.direita))
         return y
@@ -50,35 +56,19 @@ class ArvorePedido:
             return raiz
 
         raiz.altura = 1 + max(self.altura(raiz.esquerda), self.altura(raiz.direita))
-        balance = self.fatorBalanceamento(raiz)
+        bal = self.balanceamento(raiz)
 
-        if balance > 1 and id_pedido < raiz.esquerda.id:
-            return self.rotaDireita(raiz)
-        if balance < -1 and id_pedido > raiz.direita.id:
-            return self.rotaEsquerda(raiz)
-        if balance > 1 and id_pedido > raiz.esquerda.id:
-            raiz.esquerda = self.rotaEsquerda(raiz.esquerda)
-            return self.rotaDireita(raiz)
-        if balance < -1 and id_pedido < raiz.direita.id:
-            raiz.direita = self.rotaDireita(raiz.direita)
-            return self.rotaEsquerda(raiz)
+        if bal > 1 and id_pedido < raiz.esquerda.id:
+            return self.rotacao_direita(raiz)
+        if bal < -1 and id_pedido > raiz.direita.id:
+            return self.rotacao_esquerda(raiz)
+        if bal > 1 and id_pedido > raiz.esquerda.id:
+            raiz.esquerda = self.rotacao_esquerda(raiz.esquerda)
+            return self.rotacao_direita(raiz)
+        if bal < -1 and id_pedido < raiz.direita.id:
+            raiz.direita = self.rotacao_direita(raiz.direita)
+            return self.rotacao_esquerda(raiz)
 
         return raiz
 
-    def adicionarPedido(self, id_pedido, dados_pedido):
-        self.raiz = self.inserir(self.raiz, id_pedido, dados_pedido)
-
-    def buscar(self, raiz, id_pedido):
-        if raiz is None:
-            return None
-        if id_pedido == raiz.id:
-            return raiz.dados
-        if id_pedido < raiz.id:
-            return self.buscar(raiz.esquerda, id_pedido)
-        return self.buscar(raiz.direita, id_pedido)
-
-    def inordem(self, raiz):
-        if raiz is not None:
-            self.inordem(raiz.esquerda)
-            print(raiz.id, raiz.dados)
-            self.inordem(raiz.direita)
+  
