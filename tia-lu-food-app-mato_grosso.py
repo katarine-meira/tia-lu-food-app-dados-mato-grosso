@@ -1,4 +1,4 @@
-from json_funcoes import carregar_json, salvar_json
+#from json_funcoes import carregar_json, salvar_json
 
 data = carregar_json()
 
