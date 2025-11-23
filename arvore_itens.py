@@ -107,5 +107,5 @@ class ArvoreAVL:
             self._inordem_json(no.esquerda, lista)
             lista.append({"cod_item": no.chave, "valor": no.valor})
             self._inordem_json(no.direita, lista)
-
+    
     
