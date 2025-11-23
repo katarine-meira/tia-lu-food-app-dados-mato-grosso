@@ -1,6 +1,7 @@
-#from json_funcoes import carregar_json, salvar_json
+from json_funcoe import carregar_json, salvar_json
+import json
 
-data = carregar_json()
+data = carregar_json("dados_pedidos.json")
 
 itemCadastrado = data["produtos"]
 pedidosPendentes = data["pedidos_pendentes"]
@@ -161,7 +162,8 @@ def cadastrarItem():
     }
     itemCadastrado.append(item)
     data["contador_produto"] = contador_produto
-    salvar_json(data)
+    salvar_json("dados_pedidos.json", data)
+
     print("\nProduto cadastrado com sucesso!\n")
 
 def atualizarItens():
@@ -191,7 +193,8 @@ def atualizarItens():
         "preco": float(preco_atual),
         "estoque": int(estoque_atual)
     })
-    salvar_json(data)
+    salvar_json("dados_pedidos.json", data)
+
     print("\nItens atualizados!")
 
 def consultarItens():
@@ -260,7 +263,8 @@ def criarPedido():
                             if pedido_usuario["produtos"]:
                                 pedidosPendentes.append(pedido_usuario)
                                 data["pedidos_pendentes"] = pedidosPendentes
-                                salvar_json(data)
+                                salvar_json("dados_pedidos.json", data)
+                            
                                 print("\nPedido enviado para aprovação!")
                             else:
                                 print("\nNenhum produto adicionado, pedido cancelado.")
@@ -316,14 +320,16 @@ def ProcessarPedidos():
                 linha = pedidosPendentes.pop(0)
                 filaPreparo.append(linha)
                 data["fila_preparo"] = filaPreparo
-                salvar_json(data)
+                salvar_json("dados_pedidos.json", data)
+            
                 print(f"\nPedido {pedido['id_pedido']} aceito!")
             elif opcao == '2':
                 pedido['status'] = "Rejeitado"
                 linha = pedidosPendentes.pop(0)
                 filaRejeitados.append(linha)
                 data["fila_rejeitados"] = filaRejeitados
-                salvar_json(data)
+                salvar_json("dados_pedidos.json", data)
+            
                 print("\nPedido cancelado!")
             elif opcao == '0':
                 return
@@ -366,7 +372,8 @@ def atualizarStatusPedido():
             else:
                 pedido['status'] = fluxoStatus[0]
             data["fila_preparo"] = filaPreparo
-            salvar_json(data)
+            salvar_json("dados_pedidos.json", data)
+        
             print(f"Status do pedido {pedido['id_pedido']} atualizado para: {pedido['status']}")
             return
     print("\nPedido não encontrado!")
@@ -399,7 +406,8 @@ def cancelarPedido():
     pedido["status"] = "Cancelado"
     filaCancelados.append(pedido)
     data["fila_cancelados"] = filaCancelados
-    salvar_json(data)
+    salvar_json("dados_pedidos.json", data)
+
     print("\nPedido cancelado com sucesso!")
 
 def exibirPedidos():

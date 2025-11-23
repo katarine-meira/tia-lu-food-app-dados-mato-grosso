@@ -1,6 +1,6 @@
 from json_funcoe import carregar_json, salvar_json
 
-CAMINHO_JSON_PEDIDOS = "dados_pedidos.json"
+CAMINHO_JSON_PEDIDOS = "arvore_pedidos_index.json"
 
 
 class NoAVL:
@@ -86,6 +86,10 @@ class ArvorePedido:
 
     def carregar_pedidos(self):
         dados = carregar_json(CAMINHO_JSON_PEDIDOS)
+        
+        if not isinstance(dados, list):
+            dados = []
+        
         self.raiz = None
         for pedido in dados:
             self.raiz = self.inserir(self.raiz, pedido["id_pedido"], pedido["dados"])

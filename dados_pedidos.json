@@ -1,1 +1,30 @@
-[]
+{
+    "produtos": [
+        {
+            "nome": "magao",
+            "descricao": "é so magão",
+            "codigo": "PRO0001",
+            "preco": 12.9,
+            "estoque": 1
+        }
+    ],
+    "pedidos_pendentes": [],
+    "fila_preparo": [
+        {
+            "id_pedido": "PED0001",
+            "produtos": [
+                {
+                    "nome": "magao",
+                    "codigo": "PRO0001",
+                    "preco": 12.9
+                }
+            ],
+            "status": "Aceito",
+            "valor_final_pago": 12.9
+        }
+    ],
+    "fila_rejeitados": [],
+    "fila_cancelados": [],
+    "contador_produto": 2,
+    "contador_pedido": 1
+}
