@@ -1,6 +1,6 @@
 from json_funcoe import carregar_json, salvar_json
 
-CAMINHO_JSON_ITENS = "dados_itens.json"
+CAMINHO_JSON_ITENS = "arvore_itens_index.json"
 
 
 class NoAVL:
@@ -92,10 +92,15 @@ class ArvoreAVL:
         for item in dados:
             self.raiz = self.inserir(self.raiz, item["cod_item"], item["valor"])
 
-    def salvar_itens(self):
-        dados = []
-        self._inordem_json(self.raiz, dados)
-        salvar_json(CAMINHO_JSON_ITENS, dados)
+    def carregar_itens(self):
+         dados = carregar_json(CAMINHO_JSON_ITENS)
+    
+         if not isinstance(dados, list):
+            dados = []
+    
+         self.raiz = None
+         for item in dados:
+            self.raiz = self.inserir(self.raiz, item["cod_item"], item["valor"])
 
     def _inordem_json(self, no, lista):
         if no is not None:
