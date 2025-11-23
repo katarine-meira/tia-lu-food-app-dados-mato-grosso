@@ -85,5 +85,22 @@ class ArvoreAVL:
         if cod_item < raiz.chave:
             return self.buscar(raiz.esquerda, cod_item)
         return self.buscar(raiz.direita, cod_item)
+    
+    def carregar_itens(self):
+        dados = carregar_json(CAMINHO_JSON_ITENS)
+        self.raiz = None
+        for item in dados:
+            self.raiz = self.inserir(self.raiz, item["cod_item"], item["valor"])
+
+    def salvar_itens(self):
+        dados = []
+        self._inordem_json(self.raiz, dados)
+        salvar_json(CAMINHO_JSON_ITENS, dados)
+
+    def _inordem_json(self, no, lista):
+        if no is not None:
+            self._inordem_json(no.esquerda, lista)
+            lista.append({"cod_item": no.chave, "valor": no.valor})
+            self._inordem_json(no.direita, lista)
 
     
