@@ -5,10 +5,29 @@
             "descricao": "é so magão",
             "codigo": "PRO0001",
             "preco": 12.9,
-            "estoque": 1
+            "estoque": 0
+        },
+        {
+            "nome": "bolo fofinho",
+            "descricao": "bolo de cenoura",
+            "codigo": "PRO0002",
+            "preco": 34.5,
+            "estoque": 18
         }
     ],
-    "pedidos_pendentes": [],
+    "pedidos_pendentes": [
+        {
+            "id_pedido": "PED0001",
+            "produtos": [
+                {
+                    "nome": "bolo fofinho",
+                    "codigo": "PRO0002",
+                    "preco": 34.5
+                }
+            ],
+            "status": "Aguardando Aprovação"
+        }
+    ],
     "fila_preparo": [
         {
             "id_pedido": "PED0001",
@@ -17,14 +36,19 @@
                     "nome": "magao",
                     "codigo": "PRO0001",
                     "preco": 12.9
+                },
+                {
+                    "nome": "bolo fofinho",
+                    "codigo": "PRO0002",
+                    "preco": 34.5
                 }
             ],
-            "status": "Aceito",
-            "valor_final_pago": 12.9
+            "status": "Em preparo",
+            "valor_final_pago": 42.66
         }
     ],
     "fila_rejeitados": [],
     "fila_cancelados": [],
-    "contador_produto": 2,
+    "contador_produto": 3,
     "contador_pedido": 1
 }

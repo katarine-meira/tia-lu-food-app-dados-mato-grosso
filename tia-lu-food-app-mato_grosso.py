@@ -1,4 +1,6 @@
 from json_funcoe import carregar_json, salvar_json
+from arvore_itens import ArvoreAVL
+from arvore_pedidos import ArvorePedido
 import json
 
 data = carregar_json("dados_pedidos.json")
