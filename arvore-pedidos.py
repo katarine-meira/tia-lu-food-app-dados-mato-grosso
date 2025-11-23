@@ -70,5 +70,35 @@ class ArvorePedido:
             return self.rotacao_esquerda(raiz)
 
         return raiz
+    
+    def adicionar_pedido(self, id_pedido, dados_pedido):
+        self.raiz = self.inserir(self.raiz, id_pedido, dados_pedido)
+        self.salvar_pedidos()
+
+    def buscar(self, raiz, id_pedido):
+        if raiz is None:
+            return None
+        if id_pedido == raiz.id:
+            return raiz.dados
+        if id_pedido < raiz.id:
+            return self.buscar(raiz.esquerda, id_pedido)
+        return self.buscar(raiz.direita, id_pedido)
+
+    def carregar_pedidos(self):
+        dados = carregar_json(CAMINHO_JSON_PEDIDOS)
+        self.raiz = None
+        for pedido in dados:
+            self.raiz = self.inserir(self.raiz, pedido["id_pedido"], pedido["dados"])
+
+    def salvar_pedidos(self):
+        dados = []
+        self._inordem_json(self.raiz, dados)
+        salvar_json(CAMINHO_JSON_PEDIDOS, dados)
+
+    def _inordem_json(self, no, lista):
+        if no is not None:
+            self._inordem_json(no.esquerda, lista)
+            lista.append({"id_pedido": no.id, "dados": no.dados})
+            self._inordem_json(no.direita, lista)
 
   
