@@ -1,18 +1,32 @@
-from json_funcoe import carregar_json, salvar_json
 from arvore_itens import ArvoreAVL
 from arvore_pedidos import ArvorePedido
-import json
 
-data = carregar_json("dados_pedidos.json")
+arvoreItens = ArvoreAVL()
+arvorePedidos = ArvorePedido()
 
-itemCadastrado = data["produtos"]
-pedidosPendentes = data["pedidos_pendentes"]
-filaPreparo = data["fila_preparo"]
-filaRejeitados = data["fila_rejeitados"]
-filaCancelados = data["fila_cancelados"]
+# Calcula contador de produtos
+contador_produto = 0
+itens = arvoreItens.listar_em_ordem()
+if itens:
+    contador_produto = max(int(no['valor']['codigo'][3:]) for no in itens) + 1
 
-contador_produto = data["contador_produto"]
-contador_pedido = data["contador_pedido"]
+# Calcula contador de pedidos
+contador_pedido = 0
+pedidos = arvorePedidos.listar_em_ordem()
+if pedidos:
+    contador_pedido = max(int(no['dados']['id_pedido'][3:]) for no in pedidos) + 1
+
+
+def get_pedidos():
+    return arvorePedidos.listar_em_ordem()
+
+def get_pedidos_por_status(status):
+    pedidos = arvorePedidos.listar_em_ordem()
+    return [
+        p["dados"]
+        for p in pedidos
+        if p["dados"].get("status") == status
+    ]
 
 def bucket_sort(arr, key=lambda x: x):
     if len(arr) <= 1:
@@ -139,22 +153,31 @@ def criarCliente():
 
 def cadastrarItem():
     global contador_produto
+
+    print("\n===== CADASTRAR ITEM =====\n")
+
     nome = input("Digite o nome do produto: ")
     descricao = input("Digite a descrição do produto: ")
+
     while True:
         try:
             preco = float(input("Digite o preço do produto (use '.' para decimais): "))
             break
         except ValueError:
-            print("Digite o valor usando '.'(ponto)")
+            print("Valor inválido. Tente novamente!")
+
     while True:
         try:
-            estoque = int(input("Digite a quantidade do estoque: "))
+            estoque = int(input("Digite a quantidade no estoque: "))
             break
         except ValueError:
-            print("Digite um número válido!")
+            print("Valor inválido. Tente novamente!")
+
+    # Gera o código do produto
     codigo = f"PRO{contador_produto:04d}"
     contador_produto += 1
+
+    # Item que será salvo
     item = {
         "nome": nome,
         "descricao": descricao,
@@ -162,56 +185,69 @@ def cadastrarItem():
         "preco": preco,
         "estoque": estoque
     }
-    itemCadastrado.append(item)
-    data["contador_produto"] = contador_produto
-    salvar_json("dados_pedidos.json", data)
 
+    # Adiciona o item na AVL
+    arvoreItens.adicionar_item(codigo, item)
     print("\nProduto cadastrado com sucesso!\n")
 
+
 def atualizarItens():
-    if not itemCadastrado: 
+    itens = arvoreItens.listar_em_ordem()
+    if not itens:
         print("\nO sistema ainda não possui um item cadastrado.")
         return
+
     print("\n=== ITENS CADASTRADOS ===")
-    for i, item in enumerate(itemCadastrado):
-        print(f"[{i}] {item['nome']} (R${item['preco']} - estoque: {item['estoque']})")
+    for i, item in enumerate(itens):
+        print(f"[{i}] {item['valor']['nome']} (R${item['valor']['preco']} - estoque: {item['valor']['estoque']})")
+
     while True:
         try:
             indice = int(input("\nDigite o número do item a atualizar: "))
-            if 0 <= indice < len(itemCadastrado):
+            if 0 <= indice < len(itens):
                 break
             else:
                 print("Item inválido!")
         except ValueError:
             print("Digite um número válido!")
-    item = itemCadastrado[indice]
+
+    item = itens[indice]['valor']  # pegamos o valor do nó
     nome_atual = input(f"Nome atual [{item['nome']}]: ") or item['nome']
     descricao_atual = input(f"Descrição atual [{item['descricao']}]: ") or item['descricao']
-    preco_atual = input(f"Preço atual [{item['preco']}]:") or item['preco']
-    estoque_atual = input(f"Estoque atual [{item['estoque']}]:") or item['estoque']
+    preco_atual = input(f"Preço atual [{item['preco']}]: ") or item['preco']
+    estoque_atual = input(f"Estoque atual [{item['estoque']}]: ") or item['estoque']
+
     item.update({
         "nome": nome_atual,
         "descricao": descricao_atual,
         "preco": float(preco_atual),
         "estoque": int(estoque_atual)
     })
-    salvar_json("dados_pedidos.json", data)
 
+    # Atualiza na AVL
+    arvoreItens.adicionar_item(itens[indice]['cod_item'], item)
     print("\nItens atualizados!")
 
 def consultarItens():
-    if itemCadastrado:
-        print("\n===== Itens Disponíveis =====")
-        itens_ordenados = bucket_sort(itemCadastrado, key=lambda x: int(x['codigo'][3:]))
-        for i, item in enumerate(itens_ordenados):
-            print(f"[{i}] {item['nome']} (R${item['preco']} - Descrição: {item['descricao']})")
-    else:
+    itens = arvoreItens.listar_em_ordem()
+
+    if not itens:
         print("\nNenhum item cadastrado.")
+        return
+
+    print("\n===== ITENS DISPONÍVEIS =====")
+
+    for i, item in enumerate(itens):
+        valor = item["valor"]
+        print(f"[{i}] {valor['nome']} (R${valor['preco']} - Descrição: {valor['descricao']})")
 
 def detalhesItens():
-    if itemCadastrado:
+    itens = arvoreItens.listar_em_ordem()
+
+    if itens:
         print("\n===== Detalhes do Item =====\n")
-        for item in itemCadastrado:
+        for no in itens:
+            item = no['valor']
             print(f"Nome: {item['nome']}")
             print(f"Descrição: {item['descricao']}")
             print(f"Código: {item['codigo']}")
@@ -220,61 +256,80 @@ def detalhesItens():
     else:
         print("\nNenhum item cadastrado.")
 
-pedidosPendentes = []
-
 def criarPedido():
     global contador_pedido
-    if not itemCadastrado:
+    itens = arvoreItens.listar_em_ordem()  # Pega todos os itens da AVL
+
+    if not itens:
         print("\nNenhum produto no sistema.")
         return
-    consultarItens()
-    print(f"[{len(itemCadastrado)}] Sair")
+
+    print("\n===== ITENS DISPONÍVEIS =====")
+    for i, no in enumerate(itens):
+        item = no['valor']
+        print(f"[{i}] {item['nome']} (R${item['preco']} - estoque: {item['estoque']})")
+    print(f"[{len(itens)}] Sair")
+
     pedido_usuario = {
         "id_pedido": f"PED{contador_pedido:04d}",
         "produtos": [],
         "status": "Aguardando Aprovação"
     }
     contador_pedido += 1
+
     while True:
         try:
             indice = int(input("\nDigite o número do produto que deseja: "))
         except ValueError:
             print("Digite um número válido.")
             continue
-        if indice == len(itemCadastrado):
+
+        if indice == len(itens):
             print("\nPedido cancelado.")
             return
-        if 0 <= indice < len(itemCadastrado):
-            if itemCadastrado[indice]['estoque'] > 0:
-                itemCadastrado[indice]['estoque'] -= 1
+
+        if 0 <= indice < len(itens):
+            item = itens[indice]['valor']
+            if item['estoque'] > 0:
+                item['estoque'] -= 1  # Atualiza estoque direto na AVL
+                arvoreItens.adicionar_item(item['codigo'], item)
+
                 pedido = {
-                    "nome": itemCadastrado[indice]['nome'],
-                    "codigo": itemCadastrado[indice]['codigo'],
-                    "preco": itemCadastrado[indice]['preco'],
+                    "nome": item['nome'],
+                    "codigo": item['codigo'],
+                    "preco": item['preco'],
                 }
                 pedido_usuario["produtos"].append(pedido)
+
                 print("\nSua lista atual de pedidos:")
                 for p in pedido_usuario["produtos"]:
                     print(f"- {p['nome']}")
+
                 while True:
                     match pergunta("Adicionar mais produtos"):
                         case '1':
-                            consultarItens()
+                            # Mostra os itens novamente
+                            itens = arvoreItens.listar_em_ordem()
+                            print("\n===== ITENS DISPONÍVEIS =====")
+                            for i, no in enumerate(itens):
+                                item_temp = no['valor']
+                                print(f"[{i}] {item_temp['nome']} (R${item_temp['preco']} - estoque: {item_temp['estoque']})")
+                            print(f"[{len(itens)}] Sair")
                             break
                         case '0':
                             if pedido_usuario["produtos"]:
-                                pedidosPendentes.append(pedido_usuario)
-                                data["pedidos_pendentes"] = pedidosPendentes
-                                salvar_json("dados_pedidos.json", data)
-                            
+                                arvorePedidos.adicionar_pedido(
+                                    pedido_usuario["id_pedido"],
+                                    pedido_usuario
+                                )
                                 print("\nPedido enviado para aprovação!")
                             else:
                                 print("\nNenhum produto adicionado, pedido cancelado.")
-                            return 
+                            return
                         case _:
                             print("\nOpção inválida")
             else:
-                print(f"\n{itemCadastrado[indice]['nome']} está sem estoque.")
+                print(f"\n{item['nome']} está sem estoque.")
                 while True:
                     match sair():
                         case '1':
@@ -287,58 +342,67 @@ def criarPedido():
         else:
             print("\nÍndice inválido.")
 
-filaPreparo = []
-filaRejeitados = []
-
 def ProcessarPedidos():
-    if pedidosPendentes:
-        while pedidosPendentes:
-            pedido = pedidosPendentes[0]
-            print("\n===== Pedido pendente =====")
-            print(f"Código do pedido - {pedido['id_pedido']} (Status: {pedido['status']})")
-            for produto in pedido['produtos']:
-                print(f"   - {produto['nome']} (id: {produto['codigo']})")
-            print(f"\n===== Pedido {pedido['produtos'][0]['codigo']} =====")
-            print("[1] Aceitar (pagamento)")
-            print("[2] Rejeitar")
-            print("[0] Sair")
-            opcao = input("\n>>: ")
+    # Carrega todos os pedidos da AVL
+    pedidos = arvorePedidos.listar_em_ordem()
 
-            if opcao == '1':
-                valor_total = 0
-                for produto in pedido['produtos']:
-                    valor_total += produto['preco']
-                valor_final_pago = valor_total
-                cupom = input("Deseja utilizar o cupom de desconto do dia?[s ou n]: ").lower()
-                if cupom == 's':
-                    desconto = valor_total / 10
-                    valor_final_pago = valor_total - desconto
-                    print(f"\nValor total pago: {valor_final_pago:.2f}")
-                else:
-                    print(f"\nValor total pago: {valor_total:.2f}")
-                    valor_final_pago = valor_total
-                pedido['valor_final_pago'] = valor_final_pago
-                pedido['status'] = "Aceito"
-                linha = pedidosPendentes.pop(0)
-                filaPreparo.append(linha)
-                data["fila_preparo"] = filaPreparo
-                salvar_json("dados_pedidos.json", data)
-            
-                print(f"\nPedido {pedido['id_pedido']} aceito!")
-            elif opcao == '2':
-                pedido['status'] = "Rejeitado"
-                linha = pedidosPendentes.pop(0)
-                filaRejeitados.append(linha)
-                data["fila_rejeitados"] = filaRejeitados
-                salvar_json("dados_pedidos.json", data)
-            
-                print("\nPedido cancelado!")
-            elif opcao == '0':
-                return
-            else:
-                print("\nOpção inválida")
-    else:
+    # Filtra apenas os que estão "Aguardando Aprovação"
+    pedidos_pendentes = [p["dados"] for p in pedidos if p["dados"].get("status") == "Aguardando Aprovação"]
+
+    if not pedidos_pendentes:
         print("\nNenhum pedido novo no sistema.")
+        return
+
+    while pedidos_pendentes:
+        pedido = pedidos_pendentes[0]
+        print("\n===== Pedido pendente =====")
+        print(f"Código do pedido - {pedido['id_pedido']} (Status: {pedido['status']})")
+        for produto in pedido['produtos']:
+            print(f"   - {produto['nome']} (id: {produto['codigo']})")
+        print(f"\n===== Pedido {pedido['id_pedido']} =====")
+        print("[1] Aceitar (pagamento)")
+        print("[2] Rejeitar")
+        print("[0] Sair")
+        opcao = input("\n>>: ")
+
+        if opcao == '1':
+            valor_total = sum(produto['preco'] for produto in pedido['produtos'])
+            valor_final_pago = valor_total
+            cupom = input("Deseja utilizar o cupom de desconto do dia? [s ou n]: ").lower()
+            if cupom == 's':
+                desconto = valor_total / 10
+                valor_final_pago = valor_total - desconto
+            pedido['valor_final_pago'] = valor_final_pago
+            pedido['status'] = "Aceito"
+            
+            # Atualiza estoque somente quando pedido é aceito
+            # for produto_pedido in pedido['produtos']:
+            #     codigo = produto_pedido['codigo']
+            #     no_item = arvoreItens.buscar(codigo)  # Buscar nó na AVL
+            #     if no_item:
+            #         no_item['valor']['estoque'] -= 1
+            #         arvoreItens.adicionar_item(codigo, no_item['valor'])
+
+            # Atualiza na AVL
+            arvorePedidos.adicionar_pedido(pedido['id_pedido'], pedido)
+
+            print(f"\nPedido {pedido['id_pedido']} aceito! Valor final: R$ {valor_final_pago:.2f}")
+
+        elif opcao == '2':
+            pedido['status'] = "Rejeitado"
+
+            # Atualiza na AVL
+            arvorePedidos.adicionar_pedido(pedido['id_pedido'], pedido)
+
+            print(f"\nPedido {pedido['id_pedido']} rejeitado!")
+
+        elif opcao == '0':
+            return
+        else:
+            print("\nOpção inválida")
+
+        # Remove o pedido processado da lista temporária
+        pedidos_pendentes.pop(0)
 
 filaCancelados =[]
 
@@ -350,105 +414,188 @@ def atualizarStatusPedido():
         'Seu pedido saiu para entrega',
         'Pedido entregue'
     ]
+
+    # Carrega todos os pedidos da AVL
+    pedidos = arvorePedidos.listar_em_ordem()
+    
+    # Filtra apenas pedidos em andamento (status que podemos atualizar)
+    pedidos_em_processo = [
+        item["dados"] for item in pedidos 
+        if item["dados"].get("status") in fluxoStatus or item["dados"].get("status") == "Aceito"
+    ]
+
+    if not pedidos_em_processo:
+        print("\nNENHUM PEDIDO A SER ATUALIZADO!")
+        return
+
     print("\nPEDIDOS EM PROCESSO: \n")
-    for pedido in filaPreparo:
+    for pedido in pedidos_em_processo:
         print(f"ID do Pedido - {pedido['id_pedido']} (Status: {pedido['status']})")
         for produto in pedido['produtos']:
             print(f"   - {produto['nome']}")
         print("______________________________________________")
-    if not filaPreparo:
-        print("NENHUM PEDIDO A SER ATUALIZADO!")
-        return
-    numeroPedido = input(f"Nº ID do pedido que deseja atualizar: ")
-    for pedido in filaPreparo:
+
+    numeroPedido = input("Nº ID do pedido que deseja atualizar: ")
+
+    for pedido in pedidos_em_processo:
         if pedido['id_pedido'] == numeroPedido:
-            print(f"\nPedido encontrado!")
-            print(f"id_pedido: {pedido['id_pedido']}")      
-            if pedido['status'] in fluxoStatus:
-                indice = fluxoStatus.index(pedido['status'])
+            print(f"\nPedido encontrado! ID: {pedido['id_pedido']}")      
+
+            status_atual = pedido.get('status', '')
+            if status_atual in fluxoStatus:
+                indice = fluxoStatus.index(status_atual)
                 if indice < len(fluxoStatus) - 1:
                     pedido['status'] = fluxoStatus[indice + 1]
                 else:
                     print("\nEste pedido já foi atualizado!")
                     return
             else:
+                # Caso esteja em "Aceito" ou outro status inicial
                 pedido['status'] = fluxoStatus[0]
-            data["fila_preparo"] = filaPreparo
-            salvar_json("dados_pedidos.json", data)
-        
+
+            # Atualiza na AVL
+            arvorePedidos.adicionar_pedido(pedido['id_pedido'], pedido)
+
             print(f"Status do pedido {pedido['id_pedido']} atualizado para: {pedido['status']}")
             return
+
     print("\nPedido não encontrado!")
 
 def cancelarPedido():
-    global pedidosPendentes, filaPreparo, filaCancelados
-    cancelaveis = []
-    for nome_lista, lista_pedidos in [("Pendentes", pedidosPendentes), ("Fila de Preparo", filaPreparo)]:
-        for pedido in lista_pedidos:
-            status = pedido.get("status", "")
-            if status in ("Aguardando Aprovação", "Aceito"):
-                cancelaveis.append((nome_lista, pedido))
+    # Carrega todos os pedidos da AVL
+    pedidos = arvorePedidos.listar_em_ordem()
+
+    # Filtra apenas os pedidos canceláveis
+    cancelaveis = [
+        pedido["dados"] 
+        for pedido in pedidos 
+        if pedido["dados"].get("status") in ("Aguardando Aprovação", "Aceito")
+    ]
+
     if not cancelaveis:
         print("\nNão há pedidos canceláveis no momento.")
         return
+
     print("\n====== Pedidos Canceláveis ======")
-    for i, (nome_lista, pedido) in enumerate(cancelaveis):
+    for i, pedido in enumerate(cancelaveis):
         nomes_produtos = ", ".join([produto['nome'] for produto in pedido['produtos']])
         print(f"[{i}] {nomes_produtos} | Status: {pedido['status']}")
-    try: 
+
+    try:
         escolha = int(input("\nDigite o número do pedido para cancelar: "))
-        nome_lista, pedido = cancelaveis[escolha]
+        pedido = cancelaveis[escolha]
     except (ValueError, IndexError):
         print("Opção inválida.")
         return
-    if pedido in pedidosPendentes:
-        pedidosPendentes.remove(pedido)
-    elif pedido in filaPreparo:
-        filaPreparo.remove(pedido)
+
+    # Atualiza o status para "Cancelado" e salva na AVL
     pedido["status"] = "Cancelado"
-    filaCancelados.append(pedido)
-    data["fila_cancelados"] = filaCancelados
-    salvar_json("dados_pedidos.json", data)
+
+    for produto in pedido["produtos"]:
+        codigo = produto["codigo"]
+        no_item = arvoreItens.buscar(codigo)
+        if no_item:
+            no_item["valor"]["estoque"] += 1  # devolve 1 unidade ao estoque
+            arvoreItens.adicionar_item(codigo, no_item["valor"])  # atualiza AVL
+
+    arvorePedidos.adicionar_pedido(pedido["id_pedido"], pedido)
 
     print("\nPedido cancelado com sucesso!")
 
 def exibirPedidos():
-    print("\n========= PEDIDOS: ==========")
-    if not (pedidosPendentes or filaPreparo or filaRejeitados or filaCancelados):
+    print("\n========= PEDIDOS ==========")
+
+    # carregar todos os pedidos ordenados da AVL
+    pedidos = arvorePedidos.listar_em_ordem()
+
+    if not pedidos:
         print("Nenhum pedido encontrado.")
         return
-    def mostrar_lista (nome, lista):
-        if lista:
-            print(f"\n ==== {nome} ====")
-            pedidos_ordenados = bucket_sort(lista, key=lambda x: int(x['id_pedido'][3:]))
-            for pedido in pedidos_ordenados:
-                nome_produto = ", ".join([p['nome'] for p in pedido ['produtos']])
-                total = pedido.get("valor_final_pago", "N/A")
-                print(f"ID: {pedido['id_pedido']}  Produto: {nome_produto} | Status: {pedido['status']} | valor: {total}")
-    mostrar_lista("Pendentes", pedidosPendentes)
-    mostrar_lista("Em preparo", filaPreparo)
-    mostrar_lista("Rejeitados", filaRejeitados)
-    mostrar_lista("Cancelados", filaCancelados)
+
+    # organizar por grupos
+    grupos = {
+        "Aguardando Aprovação": [],
+        "Aceito": [],
+        "Em preparo": [],
+        "Pedido pronto": [],
+        "Aguardando o entregador": [],
+        "Seu pedido saiu para entrega": [],
+        "Pedido entregue": [],
+        "Rejeitado": [],
+        "Cancelado": []
+    }
+
+    # separar pedidos conforme o status
+    for item in pedidos:
+        pedido = item["dados"]  # pois AVL salva {"id_pedido": x, "dados": {...}}
+
+        status = pedido.get("status", "Desconhecido")
+
+        # cria grupo se necessário
+        if status not in grupos:
+            grupos[status] = []
+
+        grupos[status].append(pedido)
+
+    # exibir cada grupo
+    for nome, lista in grupos.items():
+        if lista:  # só exibe se tiver pedidos
+            print(f"\n===== {nome.upper()} =====")
+            for pedido in lista:
+                nomes = ", ".join([p["nome"] for p in pedido["produtos"]])
+                valor = pedido.get("valor_final_pago", "N/A")
+                if valor == "N/A":
+                    produtos = pedido.get("produtos")
+                    valor = 0;
+                    for item in produtos:
+                        valor += item.get("preco")
+                print(f"ID: {pedido['id_pedido']} | Produtos: {nomes} | Status: {pedido['status']} | Valor: {valor}")
 
 def filtroStatus():
     print("\n========= FILTRAR PEDIDO POR STATUS ==========")
-    status = input("Digite o status que deseja filtrar: ").strip().lower()
-    fila_pedido = pedidosPendentes + filaCancelados + filaPreparo + filaRejeitados
-    filtrado = [p for p in fila_pedido if p['status'].lower() == status]
+    status_desejado = input("Digite o status que deseja filtrar: ").strip().lower()
+
+    # Pega todos os pedidos da AVL em ordem
+    pedidos = arvorePedidos.listar_em_ordem()
+    
+    # Filtra pelo status
+    filtrado = [
+        p["dados"] 
+        for p in pedidos 
+        if p["dados"].get("status", "").lower() == status_desejado
+    ]
+
     if not filtrado:
         print("\nNenhum pedido encontrado.")
-    else: 
-        print(f"\nPedidos com status '{status}':")
-        for pedido in filtrado:
-            nome_produto = ", ".join([p['nome'] for p in pedido['produtos']])
-            total = pedido.get("valor_final_pago", "N/A")
-            print(f"ID: {pedido['id_pedido']} | Produtos: {nome_produto} | Valor total: {total}")
+        return
+
+    print(f"\nPedidos com status '{status_desejado}':")
+    for pedido in filtrado:
+        nomes_produtos = ", ".join([produto["nome"] for produto in pedido["produtos"]])
+        valor = pedido.get("valor_final_pago", "N/A")
+        print(f"ID: {pedido['id_pedido']} | Produtos: {nomes_produtos} | Valor total: {valor}")
 
 def relatorioVendas():
     totalFaturamento = 0
-    for pedido in filaPreparo:
-        if pedido['status'] in ("Aceito", "Em preparo", "Pedido pronto!", "Aguardando o entregador!", "Seu pedido saiu para entrega!", "Pedido entregue!"):
-            totalFaturamento += pedido['valor_final_pago']
+
+    # Carrega todos os pedidos da AVL
+    pedidos = arvorePedidos.listar_em_ordem()
+
+    # Considera apenas pedidos que estão em status de venda/entrega
+    status_validos = (
+        "Aceito",
+        "Em preparo",
+        "Pedido pronto",
+        "Aguardando o entregador",
+        "Seu pedido saiu para entrega",
+        "Pedido entregue"
+    )
+
+    for item in pedidos:
+        pedido = item["dados"]
+        if pedido.get("status") in status_validos:
+            totalFaturamento += pedido.get("valor_final_pago", 0)
+
     print("\n===== RELATÓRIO DE FATURAMENTO =====")
     print(f"\nFaturamento total: R$ {totalFaturamento:.2f}")
 

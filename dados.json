@@ -1,1 +1,32 @@
-[]
+[
+    {
+        "cod_item": "PRO0000",
+        "valor": {
+            "nome": "pão",
+            "descricao": "pão brioche",
+            "codigo": "PRO0000",
+            "preco": 10.5,
+            "estoque": 19
+        }
+    },
+    {
+        "cod_item": "PRO0001",
+        "valor": {
+            "nome": "bolo",
+            "descricao": "bolo de laranja",
+            "codigo": "PRO0001",
+            "preco": 8.9,
+            "estoque": 14
+        }
+    },
+    {
+        "cod_item": "PRO0002",
+        "valor": {
+            "nome": "pizza",
+            "descricao": "pizza de peperoni",
+            "codigo": "PRO0002",
+            "preco": 36.0,
+            "estoque": 8
+        }
+    }
+]

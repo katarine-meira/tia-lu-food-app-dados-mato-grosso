@@ -1,54 +1,51 @@
-{
-    "produtos": [
-        {
-            "nome": "magao",
-            "descricao": "é so magão",
-            "codigo": "PRO0001",
-            "preco": 12.9,
-            "estoque": 0
-        },
-        {
-            "nome": "bolo fofinho",
-            "descricao": "bolo de cenoura",
-            "codigo": "PRO0002",
-            "preco": 34.5,
-            "estoque": 18
-        }
-    ],
-    "pedidos_pendentes": [
-        {
-            "id_pedido": "PED0001",
+[
+    {
+        "id_pedido": "PED0000",
+        "dados": {
+            "id_pedido": "PED0000",
             "produtos": [
                 {
-                    "nome": "bolo fofinho",
-                    "codigo": "PRO0002",
-                    "preco": 34.5
+                    "nome": "pão",
+                    "codigo": "PRO0000",
+                    "preco": 10.5
                 }
             ],
-            "status": "Aguardando Aprovação"
+            "status": "Aceito",
+            "valor_final_pago": 9.45
         }
-    ],
-    "fila_preparo": [
-        {
+    },
+    {
+        "id_pedido": "PED0001",
+        "dados": {
             "id_pedido": "PED0001",
             "produtos": [
                 {
-                    "nome": "magao",
+                    "nome": "bolo",
                     "codigo": "PRO0001",
-                    "preco": 12.9
+                    "preco": 8.9
                 },
                 {
-                    "nome": "bolo fofinho",
+                    "nome": "pizza",
                     "codigo": "PRO0002",
-                    "preco": 34.5
+                    "preco": 36.0
                 }
             ],
-            "status": "Em preparo",
-            "valor_final_pago": 42.66
+            "status": "Rejeitado"
         }
-    ],
-    "fila_rejeitados": [],
-    "fila_cancelados": [],
-    "contador_produto": 3,
-    "contador_pedido": 1
-}
+    },
+    {
+        "id_pedido": "PED0002",
+        "dados": {
+            "id_pedido": "PED0002",
+            "produtos": [
+                {
+                    "nome": "pizza",
+                    "codigo": "PRO0002",
+                    "preco": 36.0
+                }
+            ],
+            "status": "Aceito",
+            "valor_final_pago": 36.0
+        }
+    }
+]
